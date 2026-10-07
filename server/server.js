@@ -1,11 +1,10 @@
 import mongoose from 'mongoose';
 
 import express from 'express'; // ES6 and newer javascript
-import homeRoutes from './routes/home-routes.js';
-import aboutRoutes from './routes/about-routes.js';
-import contactRoutes from './routes/contact-routes.js';
+
 import projectsRoutes from './routes/projects-routes.js';
-import servicesRoutes from './routes/services-routes.js';
+import userRoutes from './routes/user-routes.js';
+
 
 // Establish DB Connection
 mongoose.connect("mongodb://localhost:27017/mern-portfolio");
@@ -19,11 +18,10 @@ const app = express();
 
 app.use(express.json()); // for parsing application/json
 
-app.use('/', homeRoutes);
-app.use('/about', aboutRoutes);
-app.use('/contact', contactRoutes);
+
 app.use('/projects', projectsRoutes);
-app.use('/services', servicesRoutes);
+app.use('/users', userRoutes);
+
 
 app.listen(3001);
 
