@@ -1,3 +1,4 @@
+import generateToken from '../utils/jwt.js'
 import UserModel from '../models/user-model.js'
 
 // CRUD - Create, Read, Update, Delete
@@ -25,7 +26,10 @@ export const createUser = async (req, res) => {
     try {
         const newUser = new UserModel(req.body);
         const savedUser = await newUser.save();
-        res.status(201).json(savedUser);
+
+        const token = generateToken(savedUser);
+
+        res.status(201).json({ message: "User created successfully", token });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -66,10 +70,10 @@ export const deleteUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserModel.find({ email });
+        const user = await UserModel.findOne({ email });
 
         if(!user){
-            return res.status(404).message({message: "User not found"})
+            return res.status(404).json({ message: "User not found" });
         }
 
         const isMatch = await user.comparePassword(password);
@@ -77,7 +81,9 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        res.status(200).json({message: "Login Successful"})
+        const token = generateToken(user);
+
+        res.status(200).json({message: "Login Successful", token})
     } catch (error) {
        res.status(500).json({message: error.message}) 
     }

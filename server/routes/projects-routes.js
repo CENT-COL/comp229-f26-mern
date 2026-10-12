@@ -7,21 +7,23 @@ import {
     updateProject
 } from '../controllers/projects-controllers.js';
 
+import authMiddleware from '../middlewares/auth.js';
+
 const router = express.Router();
 
 // REST API simulate CRUD
 
 // READs
-router.get("/", getAllProjects);
-router.get("/:id", getProjectById);
+router.get("/", authMiddleware, getAllProjects);
+router.get("/:id", authMiddleware,getProjectById);
 
 // CREATE
-router.post("/", createProject);
+router.post("/", authMiddleware,createProject);
 
 // UPDATE
-router.put("/:id", updateProject);
+router.put("/:id", authMiddleware,updateProject);
 
 // DELETE
-router.delete("/:id", deleteProject);
+router.delete("/:id", authMiddleware,deleteProject);
 
 export default router;
