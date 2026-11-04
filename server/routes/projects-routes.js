@@ -9,6 +9,12 @@ import {
 
 const router = express.Router();
 
+// Project data changes during CRUD, so browsers must not reuse cached responses.
+router.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
+
 // REST API simulate CRUD
 
 // READs
