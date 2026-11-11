@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema(
     {
         name: String,
         email: String,
-        password: String
+        password: { type: String, select: false},
+        otpSecret: { type: String, select: false},
+        is2FAEnabled: { type: Boolean, default: false },
     }
 );
 

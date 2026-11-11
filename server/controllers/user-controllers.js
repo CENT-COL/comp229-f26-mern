@@ -1,3 +1,5 @@
+import otplib from 'otplib';
+import qrcode from 'qrcode';
 import UserModel from '../models/user-model.js'
 import generateToken from '../utils/jwt.js'
 
@@ -25,11 +27,9 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
     try {
         const newUser = new UserModel(req.body);
-        const savedUser = await newUser.save();
+        const savedUser = await newUser.save();        
 
-        const token = generateToken(savedUser);
-
-        res.status(201).json({ user: savedUser, token });
+        res.status(201).json({ user: savedUser });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -67,13 +67,26 @@ export const deleteUser = async (req, res) => {
     }
 }
 
+const findUserWithPassword = async ({email, password}) => {
+    const user = await UserModel.findOne({email}).select('+password +otpSecret');
+    if (!user) {
+        return null;
+    }
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+        return null;
+    }
+    return user;
+}
+
+
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserModel.findOne({ email });
+        const user = await UserModel.findOne({ email }).select('+password');
 
         if(!user){
-            return res.status(404).message({message: "User not found"})
+            return res.status(404).json({message: "User not found"})
         }
 
         const isMatch = await user.comparePassword(password);
@@ -81,10 +94,79 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = generateToken(user);
-
-        res.status(200).json({message: "Login Successful", token});
+        res.status(200).json({ is2FAEnabled: user.is2FAEnabled });
     } catch (error) {
        res.status(500).json({message: error.message}) 
     }
 }
+
+export const setup2FA = async (req, res) => {
+    try {
+        const user = await findUserWithPassword(req.body);
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        if (user.is2FAEnabled) {
+            return res.status(409).json({ message: '2FA is already enabled. Please log in.' });
+        }
+
+        const secret = otplib.authenticator.generateSecret();
+        const otpauth = otplib.authenticator.keyuri(user.email, 'COMP229 MERN', secret);
+        const imageUrl = await qrcode.toDataURL(otpauth);
+        user.otpSecret = secret;
+        await user.save();
+        res.set('Cache-Control', 'no-store');
+        res.json({ imageUrl });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const verify2FASetup = async (req, res) => {
+    try {
+        const user = await findUserWithPassword(req.body);
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        if (user.is2FAEnabled) {
+            return res.status(409).json({ message: '2FA is already enabled. Please log in.' });
+        }
+        const { token } = req.body;
+        if (!user.otpSecret) {
+            return res.status(400).json({ message: 'Generate the QR code first' });
+        }
+
+        const isValid = otplib.authenticator.check(token, user.otpSecret);
+        if (!isValid) {
+            return res.status(400).json({ message: 'Invalid authenticator code' });
+        }
+        user.is2FAEnabled = true;
+        await user.save();
+        res.json({ message: '2FA setup is complete. You can now log in.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const verifyOTP = async (req, res) => {
+    try {
+        const user = await findUserWithPassword(req.body);
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+        const { token } = req.body;
+        if (!user.is2FAEnabled || !user.otpSecret) {
+            return res.status(400).json({ message: 'Set up your authenticator first' });
+        }
+
+        const isValid = otplib.authenticator.check(token, user.otpSecret);
+        if (!isValid) {
+            return res.status(401).json({ message: 'Invalid authenticator code' });
+        }
+        // This is the only endpoint that issues an access JWT on this branch.
+        const accessToken = generateToken(user);
+        res.status(200).json({ message: 'Login successful', token: accessToken });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

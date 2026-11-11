@@ -9,6 +9,9 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.twoFactorEnabled) {
+            return res.status(401).json({ message: 'Two-factor authentication is not enabled, Please log in again' });
+        }
         req.user = decoded;
         next();
     } catch (error) {

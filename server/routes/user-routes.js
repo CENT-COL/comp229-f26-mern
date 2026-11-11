@@ -5,7 +5,10 @@ import {
    deleteUser,
    getAllUsers, 
    getUserById,
-   loginUser
+   loginUser,
+   setup2FA,
+   verify2FASetup,
+   verifyOTP
 } from '../controllers/user-controllers.js';
 
 const router = express.Router();
@@ -26,5 +29,9 @@ router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
 router.post('/login', loginUser);
+
+router.post('/setup-2fa', setup2FA);
+router.post('/verify-2fa-setup', verify2FASetup);
+router.post('/verify-otp', verifyOTP);
 
 export default router;
