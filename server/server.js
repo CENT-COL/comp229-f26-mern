@@ -3,6 +3,10 @@ import dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from .env file
 
 import express from 'express'; // ES6 and newer javascript
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import authMiddleware from './middlewares/auth.js';
 
@@ -22,8 +26,19 @@ const app = express();
 
 app.use(express.json()); // for parsing application/json
 
-app.use('/projects', authMiddleware, projectsRoutes);
-app.use('/users', userRoutes);
+app.use('/api/projects', authMiddleware, projectsRoutes);
+app.use('/api/users', userRoutes);
+
+app.use('/api', (req, res) => {
+    res.status(404).json({ message: 'API route not found' });
+})
+
+// Serve the static react build files
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+app.get('/{*path}', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
 
 
 app.listen(3001);
