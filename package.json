@@ -2,12 +2,19 @@
   "name": "comp229-f26-mern",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
     "build": "npm --prefix client run build",
-    "start": "npm --prefix server start"
+    "start": "npm --prefix server start",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "npm --prefix server run test",
+    "test:client": "npm --prefix client run test"
   },
   "dependencies": {
     "concurrently": "^10.0.7"
