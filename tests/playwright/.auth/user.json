@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://comp229-f26-mern.onrender.com",
+      "localStorage": [
+        {
+          "name": "token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhZWEzY2Q5NzM0YmM2MzM3N2Y2ZDgzMSIsImVtYWlsIjoiYXNlbm5hQGYxLmNvbSIsInR3b0ZhY3RvckVuYWJsZWQiOnRydWUsImlhdCI6MTc5NTYzNTU4MywiZXhwIjoxNzk4MjI3NTgzfQ._3TUmzj6GRC7weyDogjlWyWPQ9Hugmu9HGuw1K2YyoU"
+        }
+      ]
+    }
+  ]
+}
